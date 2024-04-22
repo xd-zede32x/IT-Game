@@ -1,13 +1,18 @@
+using System;
 using UnityEngine;
+using ScriptsHealthBar;
 using UnityEngine.Events;
 
 namespace ScriptHealthBar
 {
-    public class Health : MonoBehaviour
+    public class Health : MonoBehaviour, IDamageable
     {
-        public event UnityAction<float> HealthChanged;
+        private readonly int DAMAGE_PLAYER = 5;
 
-        [SerializeField, Header("HealthStats")] private int _maxHealth = 100;
+        public event UnityAction<float> HealthChanged;
+        public IntEvent Hit = new IntEvent();
+
+        [SerializeField] private int _maxHealth;
 
         private int _currentHealth;
 
@@ -16,27 +21,30 @@ namespace ScriptHealthBar
         private void Update()
         {
             if (Input.GetMouseButtonDown(0))
-                ChangeHealth(-10);
+                ApplyDamage(DAMAGE_PLAYER);
         }
 
-        private void ChangeHealth(int value)
+        public void ApplyDamage(int damageValue)
         {
-            _currentHealth += value;
+            if (damageValue > 0)
+            {
+                _currentHealth -= damageValue;
+                Hit?.Invoke(damageValue);
 
-            if (_currentHealth <= 0)
-                Death();
+                if (_currentHealth <= 0)
+                    Death();
+
+                else
+                {
+                    float currentHealthAsPercentage = (float)_currentHealth / _maxHealth;
+                    HealthChanged?.Invoke(currentHealthAsPercentage);
+                }
+            }
 
             else
-            {
-                float currentHealthAsPercentage = (float)_currentHealth / _maxHealth;
-                HealthChanged?.Invoke(currentHealthAsPercentage);
-            }
+                throw new NullReferenceException(nameof(damageValue));
         }
 
-        private void Death()
-        {
-            HealthChanged?.Invoke(0f);
-            Debug.Log("YOU ARE DEATH:)");
-        }
+        private void Death() => HealthChanged?.Invoke(0f);
     }
 }
