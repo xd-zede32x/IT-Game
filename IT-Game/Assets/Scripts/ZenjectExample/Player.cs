@@ -3,15 +3,13 @@ using UnityEngine;
 
 namespace ScriptsZenject
 {
-    public class Player : MonoBehaviour
+    public class Player : MonoBehaviour, IMovable
     {
-        private MovementHandler _movementHandler;
+        public float Speed { get; private set; }
+
+        public Transform Transform => transform;
 
         [Inject]
-        private void Construct(MovementHandler movementHandler)
-        {
-            Debug.Log(movementHandler.GetType());
-            _movementHandler = movementHandler;
-        }
+        public void Construct(PlayerConfig config) => Speed = config.Speed; 
     }
 }
